@@ -1,0 +1,188 @@
+import math
+import random
+import pickle
+import matplotlib.pyplot as plt
+dic={}
+capacity=0
+#dic_cen={}
+
+def length(customer1, customer2):
+    return math.sqrt((customer1[1] - customer2[1])**2 + (customer1[0] - customer2[0])**2)
+
+def solveIt(inputData):
+
+    lines = inputData.split('\n')
+
+    parts = lines[0].split()
+    customerCount = int(parts[0])
+    vehicleCount = int(parts[1])
+    vehicleCapacity = int(parts[2])
+    depotIndex = 0
+    points=[]
+    #dic={}
+
+    capacity = vehicleCapacity
+
+    customers = []
+    for i in range(1, customerCount+1):
+        line = lines[i]
+        parts = line.split()
+        d=(int(parts[0]), float(parts[1]),float(parts[2]))
+        customers.append(d)
+        points.append((d[1],d[2]))
+        dic[(d[1],d[2])] = (i-2,d[0])
+
+    # build a trivial solution
+    # assign customers to vehicles starting by the largest customer demands
+
+    vehicleTours = []
+
+    customerIndexs = set(range(1, customerCount))  # start at 1 to remove depot index
+    #print customers
+    
+    initial = points[0]
+    points = points[1:]
+
+    #print id_c
+    cenp=[]
+    #plt.scatter(initial[0],initial[1],s=500,c='0',marker='*')
+    #for i in range(0,len(points)):
+     #   plt.scatter(points[i][0],points[i][1],s=40,c='b')
+   # plt.show()
+    #bre
+
+    for k in range(0,3):
+        cen=[]
+        cenp,id_c = cluster(points,vehicleCount,cenp)
+        
+        ###########   vehicleCount = # of clusters i.e. 'k' in k means   ####
+        ###########    points are just the position values in list  #######
+
+        for i in cenp:
+            cen.append(points[i])
+        print points,vehicleCount
+        plotting(points,id_c,initial,cen)
+
+        temp_cenp,clusters,dic_cen=new(points,id_c,vehicleCount)
+        
+        ################## new() is mean heuristic     ###########
+      
+        cenp=[]
+        for i in temp_cenp:
+            cenp.append(dic[i][0])
+        #print "cenp",cenp
+
+    #print dic_cen
+    bre
+    
+    while(1):
+        temp=[]
+        for i in dic_cen.keys():
+            temp.append((len(dic_cen[i]),i))
+        mini=min(temp)
+        maxi=max(temp)
+        av_hold = len(points)/vehicleCount
+        #print "average",av_hold,temp_cenp
+        high = av_hold+4
+        low = av_hold-4   
+        #print "minimax",mini,maxi,high,low,temp_cenp,cenp
+        if mini[0]<low and maxi[0]>high:
+            temp_cenp.remove(mini[1])
+            while(1):
+                c=random.randint(0,(len(dic_cen[maxi[1]])-1))
+                if c not in cenp:
+                    temp=dic_cen[maxi[1]][c]
+                    break
+            temp_cenp.append(temp)
+            cenp=[]
+            #print temp_cenp
+            for i in temp_cenp:
+                cenp.append(dic[i][0])
+            for i in range(0,3):
+                cenp,id_c = cluster(points,vehicleCount,cenp)
+                cen=[]
+                for i in cenp:
+                    cen.append(points[i])
+                plotting(points,id_c,initial,cen)
+
+                temp_cenp,clusters,dic_cen=new(points,id_c,vehicleCount)
+                #print cenp
+                cenp=[]
+                for i in temp_cenp:
+                    cenp.append(dic[i][0])
+        else:
+            break
+
+
+def new(points,id_c,V):
+    cluster = []
+    centroid = []
+    dic_cen={}
+    sumx=0
+    sumy=0
+    for i in range(0,V):
+        cluster.append([])
+    
+    for i in range(0,len(points)):
+        cluster[id_c[i]].append(points[i])
+    #print "cluster",cluster
+    #print "points",points
+    for i in cluster :
+        sumx=0
+        sumy=0
+        for j in i:
+            sumx+=j[0]
+            sumy+=j[1]
+        sumx/=len(i)
+        sumy/=len(i)
+       #print "sum",sumx,sumy
+        temp=[]
+        for j in range(0,len(i)):
+            temp.append((length(i[j],(sumx,sumy)),j))
+        centroid.append(i[min(temp)[1]])
+        dic_cen[i[min(temp)[1]]] = i
+        #print dic_cen
+    return centroid,cluster,dic_cen
+
+def cluster(points,n,cen):
+    #print "len",len(points),points
+    centroids=[]
+    id_c=[]
+    if len(cen)==0:
+        for i in range(0,n):
+            while(1):
+                c=random.randint(0,(len(points)-1))
+                if c not in centroids:
+                    centroids.append(c)
+                    break
+    else:
+        for i in cen:
+            centroids.append(i)
+    temp=[]
+    c=0
+    #print "cent",centroids
+    #centroids = [45,39,34,50,72,92,93,22,100,94]
+    for i in points:
+        temp=[]
+        #print i
+        for j in range(0,len(centroids)):
+         #   print "j",j,centroids[j],points[centroids[j]]
+            temp.append((length(i,points[centroids[j]]),j))
+        #print min(temp)[1]
+        id_c.append(min(temp)[1])
+    return centroids,id_c
+
+import sys
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        fileLocation = sys.argv[1].strip()
+        inputDataFile = open(fileLocation, 'r')
+        inputData = ''.join(inputDataFile.readlines())
+        inputDataFile.close()
+        print 'Solving:', fileLocation
+        print solveIt(inputData)
+    else:
+
+        print 'This test requires an input file.  Please select one from the data directory. (i.e. python solver.py ./data/vrp_5_4_1)'
+
