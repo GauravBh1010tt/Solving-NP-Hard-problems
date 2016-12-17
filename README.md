@@ -6,8 +6,10 @@ The solution uses Opt2 heuristic and Simulate Annealing as meta-heuristics.
 Data set containing a graph of 50-80000 cities is provided in the data folder.
 To use the TSP module run the following command
 ```sh
-$ python tsp_solver.py tsp_sample_data
+$ python tsp_solver.py <data> <temp> <number of iteration>
+$ python tsp_solver.py tsp_sample_data 1.99997 10000
 ```
+`temp` is the hyper parameter which initializes initial temperature. `iteration` is the total iteration needed. For larger graph a large number of iterations are required.
 
 # Vehicle Routing Problem(VRP) 
 using K-Means clustering and Simulated Annealing. 
